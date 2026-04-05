@@ -1,0 +1,1569 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>오토콜 - 010 자동발신 솔루션</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/pretendard/1.3.9/static/pretendard.min.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --primary: #2ecc71;
+            --primary-dark: #27ae60;
+            --primary-light: #e8f8f0;
+            --accent: #3498db;
+            --dark: #2c3e50;
+            --text: #333;
+            --text-muted: #7f8c8d;
+            --bg: #ffffff;
+            --bg-light: #f8f9fa;
+            --bg-section: #f1f3f5;
+            --border: #e9ecef;
+            --shadow: 0 4px 24px rgba(0,0,0,0.08);
+            --shadow-sm: 0 2px 12px rgba(0,0,0,0.06);
+        }
+
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* 스크롤 애니메이션 */
+        .fade-up {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.7s ease, transform 0.7s ease;
+        }
+        .fade-up.visible { opacity: 1; transform: translateY(0); }
+
+        /* ===== 네비게이션 ===== */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 24px;
+        }
+
+        .nav-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+        }
+
+        .nav-logo {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .nav-links { display: flex; gap: 28px; }
+        .nav-links a {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .nav-links a:hover { color: var(--primary); }
+
+        .nav-cta {
+            padding: 10px 24px;
+            background: var(--primary);
+            color: #fff !important;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 13px;
+        }
+        .nav-cta:hover { background: var(--primary-dark); }
+
+        .nav-mobile-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text);
+        }
+
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .nav-mobile-btn { display: block; }
+            .nav-links.open {
+                display: flex;
+                flex-direction: column;
+                position: absolute;
+                top: 64px;
+                left: 0;
+                right: 0;
+                background: #fff;
+                padding: 20px 24px;
+                border-bottom: 1px solid var(--border);
+                box-shadow: var(--shadow);
+            }
+        }
+
+        /* ===== 히어로 ===== */
+        .hero {
+            padding: 120px 24px 80px;
+            background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 30%, #f0f9ff 70%, #fef3c7 100%);
+            min-height: 90vh;
+            display: flex;
+            align-items: center;
+        }
+
+        .hero-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+            width: 100%;
+        }
+
+        .hero-text {}
+
+        .hero-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .hero h1 {
+            font-size: 44px;
+            font-weight: 800;
+            line-height: 1.25;
+            color: var(--dark);
+            margin-bottom: 20px;
+        }
+
+        .hero h1 .highlight {
+            color: var(--primary);
+        }
+
+        .hero-desc {
+            font-size: 17px;
+            color: var(--text-muted);
+            line-height: 1.7;
+            margin-bottom: 32px;
+        }
+
+        .hero-buttons { display: flex; gap: 12px; flex-wrap: wrap; }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+            box-shadow: 0 4px 16px rgba(46,204,113,0.35);
+        }
+        .btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
+
+        .btn-outline {
+            background: #fff;
+            color: var(--dark);
+            border: 2px solid var(--border);
+        }
+        .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+
+        /* 히어로 폰 목업 */
+        .hero-visual {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .phone-mockup {
+            width: 280px;
+            height: 560px;
+            background: #1a1a2e;
+            border-radius: 40px;
+            border: 6px solid #333;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        }
+
+        .phone-notch {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 28px;
+            background: #333;
+            border-radius: 0 0 16px 16px;
+            z-index: 2;
+        }
+
+        .phone-screen {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, #0f172a 0%, #1e3a5f 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px 20px;
+            gap: 12px;
+        }
+
+        .phone-screen .app-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: #fff;
+        }
+
+        .phone-screen .app-subtitle {
+            font-size: 11px;
+            color: #94a3b8;
+        }
+
+        .phone-screen .call-list {
+            width: 100%;
+            margin-top: 16px;
+        }
+
+        .call-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 12px;
+            margin-bottom: 8px;
+        }
+
+        .call-item .ci-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .ci-green { background: rgba(46,204,113,0.2); }
+        .ci-yellow { background: rgba(241,196,15,0.2); }
+        .ci-blue { background: rgba(52,152,219,0.2); }
+
+        .call-item .ci-info { flex: 1; }
+        .call-item .ci-name { font-size: 12px; font-weight: 600; color: #fff; }
+        .call-item .ci-num { font-size: 10px; color: #94a3b8; }
+        .call-item .ci-status { font-size: 10px; font-weight: 700; }
+        .st-calling { color: #2ecc71; }
+        .st-waiting { color: #f1c40f; }
+        .st-connected { color: #3498db; }
+
+        .phone-second {
+            position: absolute;
+            right: -60px;
+            bottom: -20px;
+            width: 220px;
+            height: 440px;
+            background: #1a1a1a;
+            border-radius: 32px;
+            border: 5px solid #333;
+            overflow: hidden;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+            transform: rotate(8deg);
+        }
+
+        .phone-second .phone-screen {
+            background: #f0f0f0;
+            padding: 32px 10px 10px;
+            gap: 0;
+            justify-content: flex-start;
+        }
+
+        /* 상단 상태바 */
+        .app-status-bar {
+            width: 100%;
+            background: #3a3d5c;
+            border-radius: 0;
+            padding: 4px 10px;
+            margin: -32px -10px 6px -10px;
+            width: calc(100% + 20px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .app-status-bar .asb-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #2ecc71;
+        }
+
+        .app-status-bar .asb-dot.red { background: #e74c3c; }
+
+        .app-status-bar .asb-text {
+            font-size: 9px;
+            color: #7bed9f;
+            font-weight: 600;
+        }
+
+        .app-status-bar .asb-text.red-text { color: #ff6b6b; }
+
+        /* 정보 박스 */
+        .app-info-box {
+            width: 100%;
+            background: #4a4d6a;
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+        }
+
+        .app-info-box .aib-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .app-info-box .aib-num {
+            font-size: 12px;
+            font-weight: 800;
+            color: #fff;
+        }
+
+        .app-info-box .aib-timer {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(255,255,255,0.15);
+            color: #2ecc71;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 10px;
+        }
+
+        .app-info-box .aib-timer .timer-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #2ecc71;
+        }
+
+        .app-info-box .aib-info {
+            font-size: 9px;
+            color: #b8b8cc;
+            margin-top: 1px;
+        }
+
+        /* 기능 버튼 행 */
+        .app-btn-row {
+            display: flex;
+            gap: 4px;
+            width: 100%;
+            margin-bottom: 5px;
+        }
+
+        .app-btn {
+            flex: 1;
+            padding: 12px 2px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 9px;
+            font-weight: 800;
+            color: #fff;
+        }
+
+        .app-btn-sm { padding: 7px 2px; font-size: 8px; border-radius: 6px; }
+        .abg-green { background: #2ecc71; }
+        .abg-red { background: #e74c3c; }
+        .abg-purple { background: #9b59b6; }
+        .abg-gray { background: #7f8c8d; }
+
+        @media (max-width: 768px) {
+            .hero { padding: 100px 20px 60px; min-height: auto; }
+            .hero-inner { grid-template-columns: 1fr; gap: 40px; text-align: center; }
+            .hero h1 { font-size: 30px; }
+            .hero-desc { font-size: 15px; }
+            .hero-buttons { justify-content: center; }
+            .phone-mockup { width: 220px; height: 440px; }
+            .phone-second { width: 150px; height: 300px; right: -30px; bottom: -10px; }
+        }
+
+        /* ===== 문제 제기 ===== */
+        .problem-section {
+            padding: 100px 24px;
+            background: var(--bg);
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .section-label {
+            display: inline-block;
+            padding: 6px 16px;
+            background: #fef3c7;
+            color: #d97706;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--dark);
+            line-height: 1.3;
+            margin-bottom: 12px;
+        }
+
+        .section-desc {
+            font-size: 16px;
+            color: var(--text-muted);
+            line-height: 1.7;
+            max-width: 550px;
+            margin: 0 auto;
+        }
+
+        .problem-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            max-width: 900px;
+            margin: 0 auto 40px;
+        }
+
+        .problem-card {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 28px 24px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .problem-card:hover {
+            border-color: #fca5a5;
+            box-shadow: var(--shadow-sm);
+            transform: translateY(-2px);
+        }
+
+        .problem-card .p-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: #fef2f2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin: 0 auto 16px;
+        }
+
+        .problem-card h3 {
+            font-size: 16px;
+            font-weight: 700;
+            color: #dc2626;
+            margin-bottom: 8px;
+        }
+
+        .problem-card p {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .stat-box {
+            text-align: center;
+            padding: 24px 32px;
+            background: #fef2f2;
+            border-radius: 16px;
+        }
+
+        .stat-box .s-num {
+            font-size: 40px;
+            font-weight: 800;
+            color: #dc2626;
+        }
+
+        .stat-box .s-label {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .problem-grid { grid-template-columns: 1fr; max-width: 400px; }
+            .section-title { font-size: 26px; }
+            .stat-row { flex-direction: column; gap: 12px; align-items: center; }
+        }
+
+        /* ===== 솔루션 (번호 비교) ===== */
+        .solution-section {
+            padding: 100px 24px;
+            background: var(--bg-section);
+        }
+
+        .solution-label {
+            display: inline-block;
+            padding: 6px 16px;
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 16px;
+        }
+
+        .compare-box {
+            max-width: 500px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 20px;
+            padding: 32px 28px;
+            box-shadow: var(--shadow);
+        }
+
+        .compare-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 0;
+        }
+
+        .compare-row + .compare-row { border-top: 1px solid var(--border); }
+
+        .c-number {
+            font-size: 20px;
+            font-weight: 800;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+        }
+
+        .c-old { color: #adb5bd; text-decoration: line-through; }
+        .c-new { color: var(--primary); }
+
+        .c-badge {
+            font-size: 12px;
+            font-weight: 700;
+            padding: 4px 14px;
+            border-radius: 20px;
+        }
+
+        .c-bad { background: #fef2f2; color: #dc2626; }
+        .c-good { background: var(--primary-light); color: var(--primary-dark); }
+
+        .c-arrow {
+            text-align: center;
+            font-size: 24px;
+            padding: 8px 0;
+            color: var(--primary);
+        }
+
+        /* ===== 시스템 구조도 ===== */
+        .arch-section {
+            padding: 100px 24px;
+            background: var(--bg);
+        }
+
+        .arch-diagram {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 24px;
+            padding: 40px 28px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .arch-agent {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .arch-agent-icon {
+            width: 72px;
+            height: 72px;
+            background: var(--primary-light);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+        }
+
+        .arch-agent-name { font-size: 18px; font-weight: 700; color: var(--dark); }
+        .arch-agent-sub { font-size: 13px; color: var(--text-muted); }
+
+        .arch-connector {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            margin: 16px 0;
+        }
+
+        .arch-line {
+            width: 2px;
+            height: 24px;
+            background: var(--primary);
+            border-radius: 2px;
+        }
+
+        .arch-tag {
+            padding: 6px 16px;
+            background: var(--primary-light);
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--primary-dark);
+        }
+
+        .arch-phones {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            max-width: 360px;
+            margin: 0 auto 20px;
+        }
+
+        .arch-phone {
+            background: var(--bg-light);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px 8px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .arch-phone:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow-sm);
+            transform: translateY(-2px);
+        }
+
+        .arch-phone .ap-icon { font-size: 28px; margin-bottom: 6px; }
+
+        .arch-phone .ap-num {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--primary-dark);
+            font-family: 'SF Mono', 'Fira Code', monospace;
+        }
+
+        .arch-phone .ap-status {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .arch-speed {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 28px;
+            background: var(--primary);
+            border-radius: 50px;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 700;
+            box-shadow: 0 4px 16px rgba(46,204,113,0.35);
+        }
+
+        .arch-admin {
+            margin-top: 28px;
+            padding-top: 24px;
+            border-top: 2px dashed var(--border);
+            text-align: center;
+        }
+
+        .arch-admin-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 16px;
+        }
+
+        .arch-features {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            max-width: 360px;
+            margin: 0 auto;
+        }
+
+        .arch-feat {
+            background: #eff6ff;
+            border: 1px solid #dbeafe;
+            border-radius: 12px;
+            padding: 14px;
+            text-align: center;
+        }
+
+        .arch-feat .af-icon { font-size: 24px; margin-bottom: 4px; }
+        .arch-feat .af-name { font-size: 12px; font-weight: 700; color: var(--dark); }
+
+        @media (max-width: 768px) {
+            .arch-phones { max-width: 280px; }
+            .arch-features { max-width: 280px; }
+        }
+
+        /* ===== 주요 기능 (아이콘 위젯) ===== */
+        .features-section {
+            padding: 100px 24px;
+            background: var(--bg-section);
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .feature-card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 36px 24px;
+            text-align: center;
+            border: 1px solid var(--border);
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow);
+            transform: translateY(-4px);
+        }
+
+        .feature-card .f-icon {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin: 0 auto 20px;
+        }
+
+        .f-green { background: #dcfce7; }
+        .f-blue { background: #dbeafe; }
+        .f-purple { background: #ede9fe; }
+        .f-orange { background: #ffedd5; }
+        .f-pink { background: #fce7f3; }
+        .f-teal { background: #ccfbf1; }
+
+        .feature-card h3 {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 8px;
+        }
+
+        .feature-card p {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .feature-grid { grid-template-columns: 1fr; max-width: 400px; }
+        }
+
+        /* ===== 요금제 ===== */
+        .pricing-section {
+            padding: 100px 24px;
+            background: var(--bg);
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .pricing-card {
+            background: #fff;
+            border: 2px solid var(--border);
+            border-radius: 20px;
+            padding: 36px 28px;
+            text-align: center;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .pricing-card:hover { border-color: var(--primary); box-shadow: var(--shadow); }
+
+        .pricing-card.popular {
+            border-color: var(--primary);
+            box-shadow: var(--shadow);
+        }
+
+        .popular-badge {
+            position: absolute;
+            top: -14px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 6px 20px;
+            background: var(--primary);
+            color: #fff;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .pricing-card .plan-name {
+            font-size: 14px;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .pricing-card .plan-price {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--dark);
+            margin-bottom: 4px;
+        }
+
+        .pricing-card .plan-unit {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+        }
+
+        .pricing-card ul {
+            list-style: none;
+            text-align: left;
+            margin-bottom: 28px;
+        }
+
+        .pricing-card ul li {
+            font-size: 14px;
+            color: var(--text-muted);
+            padding: 7px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pricing-card ul li::before {
+            content: '✓';
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .btn-plan {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            text-align: center;
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+            border: none;
+            transition: all 0.3s;
+        }
+
+        .btn-plan-primary { background: var(--primary); color: #fff; }
+        .btn-plan-primary:hover { background: var(--primary-dark); }
+
+        .btn-plan-outline {
+            background: #fff;
+            border: 2px solid var(--border);
+            color: var(--dark);
+        }
+        .btn-plan-outline:hover { border-color: var(--primary); color: var(--primary); }
+
+        @media (max-width: 768px) {
+            .pricing-grid { grid-template-columns: 1fr; max-width: 400px; margin: 0 auto; }
+        }
+
+        /* ===== 문의 ===== */
+        .contact-section {
+            padding: 100px 24px;
+            background: var(--bg-section);
+        }
+
+        .contact-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .contact-info {}
+
+        .contact-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .contact-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 18px 20px;
+            text-decoration: none;
+            color: var(--text);
+            transition: all 0.3s;
+        }
+
+        .contact-card:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .contact-card .cc-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .cc-green { background: #dcfce7; }
+        .cc-yellow { background: #fef9c3; }
+        .cc-blue { background: #dbeafe; }
+
+        .contact-card .cc-title { font-size: 14px; font-weight: 700; }
+        .contact-card .cc-detail { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+
+        .contact-form {
+            background: #fff;
+            border-radius: 20px;
+            padding: 32px 28px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+        }
+
+        .contact-form h3 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            color: var(--dark);
+        }
+
+        .form-group { margin-bottom: 16px; }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--bg-light);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 15px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: var(--primary);
+        }
+
+        .form-group textarea { resize: vertical; min-height: 100px; }
+
+        @media (max-width: 768px) {
+            .contact-grid { grid-template-columns: 1fr; }
+        }
+
+        /* ===== 푸터 ===== */
+        .footer {
+            padding: 48px 24px;
+            text-align: center;
+            background: var(--dark);
+            color: #fff;
+        }
+
+        .footer-logo { font-size: 22px; font-weight: 800; color: var(--primary); margin-bottom: 12px; }
+        .footer p { font-size: 13px; color: #94a3b8; line-height: 1.8; }
+
+        /* 플로팅 버튼 그룹 */
+        .floating-group {
+            position: fixed;
+            bottom: 24px;
+            right: 20px;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .floating-btn {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            text-decoration: none;
+            animation: floatBounce 3s ease-in-out infinite;
+        }
+
+        .floating-btn-kakao {
+            background: #FEE500;
+            box-shadow: 0 4px 20px rgba(254,229,0,0.4);
+        }
+
+        .floating-btn-phone {
+            background: var(--primary);
+            box-shadow: 0 4px 20px rgba(46,204,113,0.4);
+        }
+
+        /* 모바일에서만 전화 버튼 표시 */
+        .floating-btn-phone { display: none; }
+
+        @media (max-width: 768px) {
+            .floating-btn-phone { display: flex; }
+        }
+
+        @keyframes floatBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+    </style>
+</head>
+<body>
+
+<!-- 네비게이션 -->
+<nav class="nav">
+    <div class="nav-inner">
+        <a href="#" class="nav-logo">AutoCall</a>
+        <div class="nav-links" id="navLinks">
+            <a href="#problem">문제점</a>
+            <a href="#solution">솔루션</a>
+            <a href="#architecture">구조</a>
+            <a href="#features">기능</a>
+            <a href="#pricing">요금제</a>
+            <a href="#contact" class="nav-cta">무료 상담</a>
+        </div>
+        <button class="nav-mobile-btn" onclick="document.getElementById('navLinks').classList.toggle('open')">☰</button>
+    </div>
+</nav>
+
+<!-- ===== 히어로 ===== -->
+<section class="hero">
+    <div class="hero-inner">
+        <div class="hero-text fade-up visible">
+            <div class="hero-badge">🚀 010 자동발신 솔루션</div>
+            <h1>
+                수신율을 <span class="highlight">3배</span> 올리는<br>
+                스마트 자동발신<br>시스템.
+            </h1>
+            <p class="hero-desc">
+                070, 02, 032 발신번호로는 더 이상 고객이 전화를 받지 않습니다.<br>
+                010 번호로 발신하고, 관리자 시스템으로 효율을 극대화하세요.
+            </p>
+            <div class="hero-buttons">
+                <a href="#contact" class="btn btn-primary">무료 상담 신청</a>
+                <a href="#features" class="btn btn-outline">기능 살펴보기 →</a>
+            </div>
+        </div>
+        <div class="hero-visual fade-up visible">
+            <div class="phone-mockup">
+                <div class="phone-notch"></div>
+                <div class="phone-screen">
+                    <div class="app-title">AutoCall</div>
+                    <div class="app-subtitle">자동발신 시스템 실행중</div>
+                    <div class="call-list">
+                        <div class="call-item">
+                            <div class="ci-icon ci-green">📞</div>
+                            <div class="ci-info">
+                                <div class="ci-name">김영수</div>
+                                <div class="ci-num">010-1234-****</div>
+                            </div>
+                            <div class="ci-status st-calling">발신중</div>
+                        </div>
+                        <div class="call-item">
+                            <div class="ci-icon ci-blue">🔗</div>
+                            <div class="ci-info">
+                                <div class="ci-name">이미경</div>
+                                <div class="ci-num">010-5678-****</div>
+                            </div>
+                            <div class="ci-status st-connected">통화중</div>
+                        </div>
+                        <div class="call-item">
+                            <div class="ci-icon ci-yellow">⏳</div>
+                            <div class="ci-info">
+                                <div class="ci-name">박지훈</div>
+                                <div class="ci-num">010-9012-****</div>
+                            </div>
+                            <div class="ci-status st-waiting">대기</div>
+                        </div>
+                        <div class="call-item">
+                            <div class="ci-icon ci-green">📞</div>
+                            <div class="ci-info">
+                                <div class="ci-name">최수진</div>
+                                <div class="ci-num">010-3456-****</div>
+                            </div>
+                            <div class="ci-status st-calling">발신중</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="phone-second">
+                <div class="phone-screen">
+                    <!-- 상단 상태바 -->
+                    <div class="app-status-bar">
+                        <div class="asb-dot"></div>
+                        <div class="asb-text">00:12</div>
+                        <span style="color:#fff;font-size:9px;">/</span>
+                        <div class="asb-dot red"></div>
+                        <div class="asb-text red-text">녹음 00:11</div>
+                    </div>
+                    <!-- 정보 박스 -->
+                    <div class="app-info-box">
+                        <div class="aib-row">
+                            <div class="aib-num">번호: 010-****-1234</div>
+                            <div class="aib-timer"><div class="timer-dot"></div>00:19</div>
+                        </div>
+                        <div class="aib-info">정보1: 홍길동</div>
+                        <div class="aib-info">정보2: 서울시 강남구</div>
+                        <div class="aib-info">정보3: -</div>
+                    </div>
+                    <!-- 기능 버튼 -->
+                    <div class="app-btn-row">
+                        <div class="app-btn app-btn-sm abg-gray">수동발신</div>
+                        <div class="app-btn app-btn-sm abg-purple">기록</div>
+                        <div class="app-btn app-btn-sm abg-purple">메모</div>
+                        <div class="app-btn app-btn-sm abg-red">통화 중지</div>
+                    </div>
+                    <!-- 결과 버튼 3x3 -->
+                    <div class="app-btn-row">
+                        <div class="app-btn abg-green">관심</div>
+                        <div class="app-btn abg-green">유지</div>
+                        <div class="app-btn abg-green">다음</div>
+                    </div>
+                    <div class="app-btn-row">
+                        <div class="app-btn abg-green">거절</div>
+                        <div class="app-btn abg-green">불가</div>
+                        <div class="app-btn abg-green">부재중</div>
+                    </div>
+                    <div class="app-btn-row">
+                        <div class="app-btn abg-red">수신거부</div>
+                        <div class="app-btn abg-red">결번</div>
+                        <div class="app-btn abg-red">통화종료</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== 문제 제기 ===== -->
+<section class="problem-section" id="problem">
+    <div class="section-header fade-up">
+        <div class="section-label">PROBLEM</div>
+        <h2 class="section-title">왜 고객이 전화를 안 받을까?</h2>
+        <p class="section-desc">기존 발신 번호 체계의 한계로 아웃바운드 수신율이 급격히 하락하고 있습니다.</p>
+    </div>
+
+    <div class="problem-grid fade-up">
+        <div class="problem-card">
+            <div class="p-icon">🚫</div>
+            <h3>070 = 스팸 인식</h3>
+            <p>070 인터넷전화 번호는 대부분의 고객이 스팸으로 인식하고 즉시 거부합니다.</p>
+        </div>
+        <div class="problem-card">
+            <div class="p-icon">📵</div>
+            <h3>02/032 = 무시</h3>
+            <p>지역번호 발신은 모르는 회사 전화로 인식되어 받지 않거나 차단합니다.</p>
+        </div>
+        <div class="problem-card">
+            <div class="p-icon">🐢</div>
+            <h3>발신 속도 한계</h3>
+            <p>상담원 1명당 전화기 1대로는 발신량에 한계가 있어 효율이 떨어집니다.</p>
+        </div>
+    </div>
+
+    <div class="stat-row fade-up">
+        <div class="stat-box">
+            <div class="s-num">87%</div>
+            <div class="s-label">070 수신 거부율</div>
+        </div>
+        <div class="stat-box">
+            <div class="s-num">72%</div>
+            <div class="s-label">지역번호 무시율</div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== 솔루션 ===== -->
+<section class="solution-section" id="solution">
+    <div class="section-header fade-up">
+        <div class="solution-label">SOLUTION</div>
+        <h2 class="section-title">010 번호로 바꾸면<br>고객이 받습니다</h2>
+        <p class="section-desc">010 휴대폰 번호로 발신하면 지인의 전화로 인식하여 수신율이 비약적으로 상승합니다.</p>
+    </div>
+
+    <div class="compare-box fade-up">
+        <div class="compare-row">
+            <span class="c-number c-old">070-XXXX-XXXX</span>
+            <span class="c-badge c-bad">수신 거부</span>
+        </div>
+        <div class="compare-row">
+            <span class="c-number c-old">02-XXX-XXXX</span>
+            <span class="c-badge c-bad">무시</span>
+        </div>
+        <div class="c-arrow">⬇</div>
+        <div class="compare-row">
+            <span class="c-number c-new">010-XXXX-XXXX</span>
+            <span class="c-badge c-good">수신 응답!</span>
+        </div>
+    </div>
+</section>
+
+<!-- ===== 시스템 구조도 ===== -->
+<section class="arch-section" id="architecture">
+    <div class="section-header fade-up">
+        <div class="solution-label">SYSTEM</div>
+        <h2 class="section-title">상담원 1명이<br>여러 대의 전화기를 운용</h2>
+        <p class="section-desc">상담원 한 명에게 여러 대의 전화기를 배정하여 발신 속도를 극대화합니다.</p>
+    </div>
+
+    <div class="arch-diagram fade-up">
+        <div class="arch-agent">
+            <div class="arch-agent-icon">👩‍💼</div>
+            <div class="arch-agent-name">상담원 A</div>
+            <div class="arch-agent-sub">PC 1대로 모든 전화기 제어</div>
+        </div>
+
+        <div class="arch-connector">
+            <div class="arch-line"></div>
+            <div class="arch-tag">오토콜 시스템 연동</div>
+            <div class="arch-line"></div>
+            <div style="color: var(--primary); font-size: 16px;">▼</div>
+        </div>
+
+        <div class="arch-phones">
+            <div class="arch-phone">
+                <div class="ap-icon">📱</div>
+                <div class="ap-num">010-1234-****</div>
+                <div class="ap-status">🟢 발신중</div>
+            </div>
+            <div class="arch-phone">
+                <div class="ap-icon">📱</div>
+                <div class="ap-num">010-5678-****</div>
+                <div class="ap-status">🟡 대기</div>
+            </div>
+            <div class="arch-phone">
+                <div class="ap-icon">📱</div>
+                <div class="ap-num">010-9012-****</div>
+                <div class="ap-status">🟢 발신중</div>
+            </div>
+            <div class="arch-phone">
+                <div class="ap-icon">📱</div>
+                <div class="ap-num">010-3456-****</div>
+                <div class="ap-status">🔴 통화중</div>
+            </div>
+            <div class="arch-phone">
+                <div class="ap-icon">📱</div>
+                <div class="ap-num">010-7890-****</div>
+                <div class="ap-status">🟢 발신중</div>
+            </div>
+            <div class="arch-phone">
+                <div class="ap-icon">📱</div>
+                <div class="ap-num">010-2345-****</div>
+                <div class="ap-status">🟡 대기</div>
+            </div>
+        </div>
+
+        <div style="text-align: center;">
+            <div class="arch-speed">⚡ 발신 속도 최대 6배 향상</div>
+        </div>
+
+        <div class="arch-admin">
+            <div class="arch-admin-title">🖥️ 관리자 웹 시스템</div>
+            <div class="arch-features">
+                <div class="arch-feat">
+                    <div class="af-icon">📊</div>
+                    <div class="af-name">실시간 모니터링</div>
+                </div>
+                <div class="arch-feat">
+                    <div class="af-icon">🎙️</div>
+                    <div class="af-name">통화 녹취</div>
+                </div>
+                <div class="arch-feat">
+                    <div class="af-icon">📈</div>
+                    <div class="af-name">발신 통계</div>
+                </div>
+                <div class="arch-feat">
+                    <div class="af-icon">⚙️</div>
+                    <div class="af-name">속도 최적화</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== 주요 기능 ===== -->
+<section class="features-section" id="features">
+    <div class="section-header fade-up">
+        <div class="solution-label">FEATURES</div>
+        <h2 class="section-title">강력한 기능</h2>
+        <p class="section-desc">발신부터 관리까지, 오토콜 하나로 해결하세요.</p>
+    </div>
+
+    <div class="feature-grid">
+        <div class="feature-card fade-up">
+            <div class="f-icon f-green">📞</div>
+            <h3>010 자동발신</h3>
+            <p>010 번호로 자동 발신하여 수신율을 극대화합니다.</p>
+        </div>
+        <div class="feature-card fade-up">
+            <div class="f-icon f-blue">📊</div>
+            <h3>실시간 모니터링</h3>
+            <p>통화 상태, 발신 현황을 실시간으로 한눈에 파악합니다.</p>
+        </div>
+        <div class="feature-card fade-up">
+            <div class="f-icon f-purple">🎙️</div>
+            <h3>통화 녹취</h3>
+            <p>모든 통화를 자동 녹취하고 필요할 때 재생합니다.</p>
+        </div>
+        <div class="feature-card fade-up">
+            <div class="f-icon f-orange">📈</div>
+            <h3>발신 통계 분석</h3>
+            <p>일별, 월별 통계로 효율적인 운영을 지원합니다.</p>
+        </div>
+        <div class="feature-card fade-up">
+            <div class="f-icon f-pink">📝</div>
+            <h3>메모 관리</h3>
+            <p>통화 중 메모를 기록하고 관리할 수 있습니다.</p>
+        </div>
+        <div class="feature-card fade-up">
+            <div class="f-icon f-teal">👥</div>
+            <h3>상담원 관리</h3>
+            <p>상담원별 실적과 상태를 체계적으로 관리합니다.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ===== 요금제 ===== -->
+<section class="pricing-section" id="pricing">
+    <div class="section-header fade-up">
+        <div class="solution-label">PRICING</div>
+        <h2 class="section-title">합리적인 요금제</h2>
+        <p class="section-desc">비즈니스 규모에 맞는 요금제를 선택하세요.</p>
+    </div>
+
+    <div class="pricing-grid">
+        <div class="pricing-card fade-up">
+            <div class="plan-name">기본</div>
+            <div class="plan-price">별도 문의</div>
+            <div class="plan-unit">상담원 5명 이하</div>
+            <ul>
+                <li>010 자동발신</li>
+                <li>실시간 모니터링</li>
+                <li>기본 통계</li>
+                <li>이메일 지원</li>
+            </ul>
+            <a href="#contact" class="btn-plan btn-plan-outline">문의하기</a>
+        </div>
+        <div class="pricing-card popular fade-up">
+            <div class="popular-badge">인기</div>
+            <div class="plan-name">프로</div>
+            <div class="plan-price">별도 문의</div>
+            <div class="plan-unit">상담원 20명 이하</div>
+            <ul>
+                <li>기본 포함 전체</li>
+                <li>통화 녹취</li>
+                <li>상세 통계 분석</li>
+                <li>다중 전화기 지원</li>
+                <li>우선 기술 지원</li>
+            </ul>
+            <a href="#contact" class="btn-plan btn-plan-primary">문의하기</a>
+        </div>
+        <div class="pricing-card fade-up">
+            <div class="plan-name">엔터프라이즈</div>
+            <div class="plan-price">맞춤 견적</div>
+            <div class="plan-unit">상담원 무제한</div>
+            <ul>
+                <li>프로 포함 전체</li>
+                <li>전용 서버 구축</li>
+                <li>맞춤 기능 개발</li>
+                <li>24/7 전담 지원</li>
+            </ul>
+            <a href="#contact" class="btn-plan btn-plan-outline">문의하기</a>
+        </div>
+    </div>
+</section>
+
+<!-- ===== 문의 ===== -->
+<section class="contact-section" id="contact">
+    <div class="section-header fade-up">
+        <div class="solution-label">CONTACT</div>
+        <h2 class="section-title">도입 문의</h2>
+        <p class="section-desc">궁금한 점이 있으시면 편하게 연락해주세요.</p>
+    </div>
+
+    <div class="contact-grid">
+        <div class="contact-info fade-up">
+            <div class="contact-cards">
+                <a href="tel:1877-7574" class="contact-card">
+                    <div class="cc-icon cc-green">📞</div>
+                    <div>
+                        <div class="cc-title">전화 상담</div>
+                        <div class="cc-detail">1877-7574 (평일 09:00~18:00)</div>
+                    </div>
+                </a>
+                <a href="#" class="contact-card">
+                    <div class="cc-icon cc-yellow">💬</div>
+                    <div>
+                        <div class="cc-title">카카오톡 문의</div>
+                        <div class="cc-detail">24시간 문의 가능</div>
+                    </div>
+                </a>
+                <a href="mailto:ochstelecom@naver.com" class="contact-card">
+                    <div class="cc-icon cc-blue">✉️</div>
+                    <div>
+                        <div class="cc-title">이메일 문의</div>
+                        <div class="cc-detail">ochstelecom@naver.com</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+        <div class="contact-form fade-up">
+            <h3>문의하기</h3>
+            <div class="form-group">
+                <label>회사명</label>
+                <input type="text" placeholder="회사명을 입력해주세요">
+            </div>
+            <div class="form-group">
+                <label>담당자명</label>
+                <input type="text" placeholder="성함을 입력해주세요">
+            </div>
+            <div class="form-group">
+                <label>연락처</label>
+                <input type="tel" placeholder="1877-7574">
+            </div>
+            <div class="form-group">
+                <label>문의 내용</label>
+                <textarea placeholder="문의하실 내용을 입력해주세요"></textarea>
+            </div>
+            <button class="btn btn-primary" style="width: 100%;" onclick="submitForm()">문의 보내기</button>
+        </div>
+    </div>
+</section>
+
+<!-- 푸터 -->
+<footer class="footer">
+    <div class="footer-logo">AutoCall</div>
+    <p>010 자동발신 솔루션<br>© 2026 AutoCall. All rights reserved.</p>
+</footer>
+
+<!-- 플로팅 전화 버튼 -->
+<div class="floating-group">
+    <a href="https://pf.kakao.com/_xAbCdE/chat" target="_blank" class="floating-btn floating-btn-kakao">💬</a>
+    <a href="tel:1877-7574" class="floating-btn floating-btn-phone">📞</a>
+</div>
+
+<script>
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) entry.target.classList.add('visible');
+        });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+    document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            e.preventDefault();
+            const id = this.getAttribute('href');
+            if (id === '#') return;
+            const target = document.querySelector(id);
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                document.getElementById('navLinks').classList.remove('open');
+            }
+        });
+    });
+
+    function submitForm() {
+        alert('문의가 접수되었습니다.\n빠른 시일 내에 연락드리겠습니다.');
+    }
+</script>
+
+</body>
+</html>
